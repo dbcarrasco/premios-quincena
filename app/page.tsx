@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
+import { parseFile } from "@/lib/parser";
 
 function getOrCreateSessionId(): string {
   const name = "session_id";
@@ -55,14 +56,23 @@ export default function Home() {
           type="file"
           accept=".csv,.pdf"
           className="hidden"
-          onChange={(e) => {
+          onChange={async (e) => {
             const file = e.target.files?.[0];
-            if (file) console.log("Archivo seleccionado:", file.name);
+            if (!file) return;
+            console.log("Archivo seleccionado:", file.name);
+            try {
+              const txns = await parseFile(file);
+              console.log(`✅ ${txns.length} transacciones parseadas:`, txns);
+              if (txns.length === 0)
+                console.warn("⚠️ No se encontraron transacciones. Verifica el formato del archivo.");
+            } catch (err) {
+              console.error("❌ Error al parsear:", err);
+            }
           }}
         />
 
         <p className="text-sm text-amber-700 bg-amber-100 rounded-xl px-4 py-3 leading-relaxed">
-          🔒 Tus movimientos <strong>nunca salen de tu celular</strong> — solo se guarda un resumen anónimo para mostrarte cómo evolucionan tus malos hábitos mes a mes.
+          🔒 Tu archivo se procesa con IA — nunca guardamos tus transacciones.
         </p>
 
       </div>
