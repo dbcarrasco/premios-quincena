@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { supabase } from "@/lib/supabase";
 
 function getOrCreateSessionId(): string {
   const name = "session_id";
@@ -20,6 +21,15 @@ export default function Home() {
   useEffect(() => {
     const sessionId = getOrCreateSessionId();
     console.log("session_id:", sessionId);
+
+    // Verify Supabase connection
+    supabase
+      .from("quincena_results")
+      .select("count", { count: "exact", head: true })
+      .then(({ count, error }) => {
+        if (error) console.error("Supabase error:", error.message);
+        else console.log("Supabase connected ✓ — rows in quincena_results:", count);
+      });
   }, []);
 
   return (
