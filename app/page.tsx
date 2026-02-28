@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { parseFile } from "@/lib/parser";
 import { categorizeTransactions } from "@/lib/categorizer";
+import type { Category } from "@/lib/categorizer";
 import { calculateAwards } from "@/lib/awards";
 import type { Award } from "@/lib/awards";
 
@@ -44,6 +45,21 @@ function getTopCategory(txns: { category: string }[]): string {
 function formatMonth(ym: string): string {
   const [y, m] = ym.split("-");
   return `${MES_ES[parseInt(m) - 1]} ${y}`;
+}
+
+const ALL_CATEGORIES: Category[] = [
+  "convenience_store", "rideshare", "food_delivery", "restaurant_cafe",
+  "supermarket", "cash_withdrawal", "subscription_gym", "ecommerce",
+  "pharmacy_health", "spei_transfer", "bank_fee", "gas_transport",
+  "education", "other",
+];
+
+function getCategoryTotals(txns: { category: string; amount: number }[]): Record<string, number> {
+  const totals: Record<string, number> = Object.fromEntries(ALL_CATEGORIES.map(c => [c, 0]));
+  for (const t of txns) {
+    if (t.amount < 0) totals[t.category] = (totals[t.category] ?? 0) + Math.abs(t.amount);
+  }
+  return totals;
 }
 
 function buildWhatsAppUrl(awards: Award[], month: string): string {
@@ -104,6 +120,7 @@ export default function Home() {
             top_category: getTopCategory(categorized),
             awards_won: awards.map(a => a.id),
             transaction_count: categorized.length,
+            category_totals: getCategoryTotals(categorized),
           },
           { onConflict: "session_id,month" }
         )
