@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { parseFile } from "@/lib/parser";
+import { categorizeTransactions, logCategorySummary } from "@/lib/categorizer";
 
 function getOrCreateSessionId(): string {
   const name = "session_id";
@@ -62,9 +63,13 @@ export default function Home() {
             console.log("Archivo seleccionado:", file.name);
             try {
               const txns = await parseFile(file);
-              console.log(`✅ ${txns.length} transacciones parseadas:`, txns);
-              if (txns.length === 0)
+              if (txns.length === 0) {
                 console.warn("⚠️ No se encontraron transacciones. Verifica el formato del archivo.");
+                return;
+              }
+              const categorized = categorizeTransactions(txns);
+              console.log(`✅ ${categorized.length} transacciones categorizadas:`, categorized);
+              logCategorySummary(categorized);
             } catch (err) {
               console.error("❌ Error al parsear:", err);
             }
