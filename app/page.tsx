@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { parseFile } from "@/lib/parser";
 import { categorizeTransactions, logCategorySummary } from "@/lib/categorizer";
+import { calculateAwards, logAwards } from "@/lib/awards";
 
 function getOrCreateSessionId(): string {
   const name = "session_id";
@@ -68,8 +69,9 @@ export default function Home() {
                 return;
               }
               const categorized = categorizeTransactions(txns);
-              console.log(`✅ ${categorized.length} transacciones categorizadas:`, categorized);
               logCategorySummary(categorized);
+              const awards = calculateAwards(categorized);
+              logAwards(awards);
             } catch (err) {
               console.error("❌ Error al parsear:", err);
             }
